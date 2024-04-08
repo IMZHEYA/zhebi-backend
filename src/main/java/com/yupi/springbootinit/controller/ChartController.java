@@ -1,5 +1,6 @@
 package com.yupi.springbootinit.controller;
 
+import cn.hutool.core.text.StrBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
@@ -65,8 +66,12 @@ public class ChartController {
         ThrowUtils.throwIf(StringUtils.isBlank(goal),ErrorCode.PARAMS_ERROR,"分析目标为空");
         //名称不为空并且名称>100 提示名称过长
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100,ErrorCode.PARAMS_ERROR,"图表名称过长");
+        StrBuilder userInput = new StrBuilder();
+        userInput.append("你是一个数据分析师，接下来我会给你我的分析目标和原始数据，请告诉我分析结论：").append("\n");
+        userInput.append("分析目标：").append(goal).append("\n");
         String result = ExcelUtils.excelToCsv(multipartFile);
-        return ResultUtils.success(result);
+        userInput.append("数据：").append(result).append("\n");
+        return ResultUtils.success(userInput.toString());
     }
 
 
