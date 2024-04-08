@@ -53,14 +53,14 @@ public class ExcelUtils {
         List<String> headValueList = headMap.values().stream().filter(item -> ObjectUtil.isNotEmpty(item)).collect(Collectors.toList());
         String head = StringUtils.join(headValueList, ",");
         System.out.println(head);
-        strBuilder.append(head);
+        strBuilder.append(head).append("\n");
         //过滤表数据
         for (int i = 1; i < list.size(); i ++){
             LinkedHashMap<Integer, String> dataListMap = (LinkedHashMap)list.get(i);
             List<String> dataList = dataListMap.values().stream().filter(item -> ObjectUtil.isNotEmpty(item)).collect(Collectors.toList());
             String data = StringUtils.join(dataList, ",");
             System.out.println(data);
-            strBuilder.append(data);
+            strBuilder.append(data).append("\n");
         }
         return strBuilder.toString();
     }
