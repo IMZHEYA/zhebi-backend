@@ -1,6 +1,9 @@
 package com.yupi.springbootinit.controller;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.text.StrBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -69,6 +72,15 @@ public class ChartController {
         ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "分析目标为空");
         //名称不为空并且名称>100 提示名称过长
         ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "图表名称过长");
+        //校验文件大小
+        long ONE_MB = 1024 * 1024l;
+        long size = multipartFile.getSize();
+        ThrowUtils.throwIf(size > ONE_MB,ErrorCode.PARAMS_ERROR,"文件过大");
+        //校验后缀名
+        String originalFilename = multipartFile.getOriginalFilename();
+        String suffix = FileUtil.getSuffix(originalFilename);
+        List<String> validSuffix = Arrays.asList("png","jpg","svg","webp","jpeg");
+        ThrowUtils.throwIf(!validSuffix.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
         // 指定一个模型id(把id写死，也可以定义成一个常量)
         long biModelId = 1777907604425945089L;
          /*
