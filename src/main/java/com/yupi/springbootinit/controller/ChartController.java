@@ -18,6 +18,7 @@ import com.yupi.springbootinit.constant.UserConstant;
 import com.yupi.springbootinit.exception.BusinessException;
 import com.yupi.springbootinit.exception.ThrowUtils;
 import com.yupi.springbootinit.manager.AiManager;
+import com.yupi.springbootinit.manager.RedisLimiterManager;
 import com.yupi.springbootinit.model.dto.chart.*;
 import com.yupi.springbootinit.model.entity.Chart;
 import com.yupi.springbootinit.model.entity.User;
@@ -53,6 +54,8 @@ public class ChartController {
     @Resource
     private AiManager aiManager;
 
+    @Resource
+    private RedisLimiterManager redisLimiterManager;
     /**
      * 上传文件，返回Ai数据
      *
@@ -81,6 +84,8 @@ public class ChartController {
         String suffix = FileUtil.getSuffix(originalFilename);
         List<String> validSuffix = Arrays.asList("png","jpg","svg","webp","jpeg","xlsx");
         ThrowUtils.throwIf(!validSuffix.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
+        //限流判断，每个用户一个限流器
+        redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
         // 指定一个模型id(把id写死，也可以定义成一个常量)
         long biModelId = 1777907604425945089L;
          /*
