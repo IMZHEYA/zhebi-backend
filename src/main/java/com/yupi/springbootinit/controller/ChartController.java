@@ -79,7 +79,7 @@ public class ChartController {
         //校验后缀名
         String originalFilename = multipartFile.getOriginalFilename();
         String suffix = FileUtil.getSuffix(originalFilename);
-        List<String> validSuffix = Arrays.asList("png","jpg","svg","webp","jpeg");
+        List<String> validSuffix = Arrays.asList("png","jpg","svg","webp","jpeg","xlsx");
         ThrowUtils.throwIf(!validSuffix.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
         // 指定一个模型id(把id写死，也可以定义成一个常量)
         long biModelId = 1777907604425945089L;
