@@ -3,6 +3,7 @@ package com.yupi.springbootinit.controller;
 import cn.hutool.json.JSONUtil;
 import io.netty.handler.codec.serialization.ObjectEncoder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 @RestController
 @RequestMapping("/queue")
 @Slf4j
+@Profile({"dev","local"}) // 只在开发环境和本地环境生效
 public class QueueController {
 
 
