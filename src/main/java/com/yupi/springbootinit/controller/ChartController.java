@@ -87,7 +87,7 @@ public class ChartController {
         //校验后缀名
         String originalFilename = multipartFile.getOriginalFilename();
         String suffix = FileUtil.getSuffix(originalFilename);
-        List<String> validSuffix = Arrays.asList("png","jpg","svg","webp","jpeg","xlsx");
+        List<String> validSuffix = Arrays.asList("xlsm","xlsb","xltx","xltm","csv","xls","xlsx");
         ThrowUtils.throwIf(!validSuffix.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
         //限流判断，每个用户一个限流器
         redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
