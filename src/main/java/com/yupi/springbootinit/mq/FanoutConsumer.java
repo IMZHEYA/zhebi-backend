@@ -16,7 +16,7 @@ public class FanoutConsumer {
     Connection connection = factory.newConnection();
     //创建两个频道
     Channel channel1 = connection.createChannel();
-    Channel channel2 = connection.createChannel();
+//    Channel channel2 = connection.createChannel();
     // 声明交换机
     channel1.exchangeDeclare(EXCHANGE_NAME, "fanout");
     // 创建队列1，连接到交换机上
@@ -25,8 +25,8 @@ public class FanoutConsumer {
     channel1.queueBind(queueName, EXCHANGE_NAME, "");
     // 创建队列2,连接到交换机上
     String queueName2 = "xiaoli_queue";
-    channel2.queueDeclare(queueName2, true, false, false, null);
-    channel2.queueBind(queueName2, EXCHANGE_NAME, "");
+    channel1.queueDeclare(queueName2, true, false, false, null);
+    channel1.queueBind(queueName2, EXCHANGE_NAME, "");
 
     System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
     // 创建交付回调函数1
@@ -42,6 +42,6 @@ public class FanoutConsumer {
     // 开始消费消息队列1
     channel1.basicConsume(queueName, true, deliverCallback1, consumerTag -> { });
     // 开始消费消息队列2
-    channel2.basicConsume(queueName2, true, deliverCallback2, consumerTag -> { });
+    channel1.basicConsume(queueName2, true, deliverCallback2, consumerTag -> { });
   }
 }
