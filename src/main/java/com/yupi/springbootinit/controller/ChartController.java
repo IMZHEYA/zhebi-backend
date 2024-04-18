@@ -111,11 +111,14 @@ public class ChartController {
         String userGoal = goal;
         if(StringUtils.isNotBlank(chartType)){
             //指定了图表类型，就在目标上拼接请使用，图表类型
-            userGoal += "请使用，"  + chartType;
+            userGoal += "，请使用"  + chartType;
         }
+        userInput.append(userGoal).append("\n");
+        userInput.append("原始数据：").append("\n");
         String CSVData = ExcelUtils.excelToCsv(multipartFile);
         userInput.append(CSVData).append("\n");
         String result = aiManager.doChat(biModelId, userInput.toString());
+        //String result = aiManager.sendMesToAIUseXingHuo(userInput.toString());
         String[] splits = result.split("【【【【【");
         if(splits.length < 3){
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"AI生成错误");
@@ -130,6 +133,7 @@ public class ChartController {
         chart.setGenChart(genChart);
         chart.setGenResult(genResult);
         chart.setUserId(loginUser.getId());
+        chart.setStatus("succeed");
         boolean save = chartService.save(chart);
         ThrowUtils.throwIf(!save,ErrorCode.SYSTEM_ERROR,"图表保存失败");
         BiResponse biResponse = new BiResponse();
@@ -177,8 +181,10 @@ public class ChartController {
         String userGoal = goal;
         if(StringUtils.isNotBlank(chartType)){
             //指定了图表类型，就在目标上拼接请使用，图表类型
-            userGoal += "请使用，"  + chartType;
+            userGoal += "，请使用"  + chartType;
         }
+        userInput.append(userGoal).append("\n");
+        userInput.append("原始数据：").append("\n");
         String CSVData = ExcelUtils.excelToCsv(multipartFile);
         userInput.append(CSVData).append("\n");
         Chart chart = new Chart();
@@ -263,6 +269,8 @@ public class ChartController {
             //指定了图表类型，就在目标上拼接请使用，图表类型
             userGoal += "请使用，"  + chartType;
         }
+        userInput.append(userGoal).append("\n");
+        userInput.append("原始数据：").append("\n");
         String CSVData = ExcelUtils.excelToCsv(multipartFile);
         userInput.append(CSVData).append("\n");
         Chart chart = new Chart();
