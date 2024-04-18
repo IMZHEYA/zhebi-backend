@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.gson.Gson;
 import com.yupi.springbootinit.annotation.AuthCheck;
+import com.yupi.springbootinit.bimq.BiMessageProducer;
 import com.yupi.springbootinit.common.BaseResponse;
 import com.yupi.springbootinit.common.DeleteRequest;
 import com.yupi.springbootinit.common.ErrorCode;
@@ -47,7 +48,6 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 public class ChartController {
 
-    private final static Gson GSON = new Gson();
     @Resource
     private ChartService chartService;
     @Resource
@@ -61,6 +61,9 @@ public class ChartController {
 
     @Resource
     private ThreadPoolExecutor threadPoolExecutor;
+
+    @Resource
+    private BiMessageProducer biMessageProducer;
     /**
      * 上传文件，返回Ai数据
      *
@@ -215,6 +218,64 @@ public class ChartController {
                 return;
             }
         },threadPoolExecutor);
+        BiResponse biResponse = new BiResponse();
+        biResponse.setChartId(chart.getId());
+        return ResultUtils.success(biResponse);
+    }
+    @PostMapping("/gen/async/mq")
+    public BaseResponse<BiResponse> genChartByAiAsyncMq(@RequestPart("file") MultipartFile multipartFile,
+                                                      GenChartByAiRequest genChartByAiRequest, HttpServletRequest request) {
+        String name = genChartByAiRequest.getName();
+        String goal = genChartByAiRequest.getGoal();
+        String chartType = genChartByAiRequest.getChartType();
+        User loginUser = userService.getLoginUser(request);
+        //分析目标为空抛出异常
+        ThrowUtils.throwIf(StringUtils.isBlank(goal), ErrorCode.PARAMS_ERROR, "分析目标为空");
+        //名称不为空并且名称>100 提示名称过长
+        ThrowUtils.throwIf(StringUtils.isNotBlank(name) && name.length() > 100, ErrorCode.PARAMS_ERROR, "图表名称过长");
+        //校验文件大小
+        long ONE_MB = 1024 * 1024l;
+        long size = multipartFile.getSize();
+        ThrowUtils.throwIf(size > ONE_MB,ErrorCode.PARAMS_ERROR,"文件过大");
+        //校验后缀名
+        String originalFilename = multipartFile.getOriginalFilename();
+        String suffix = FileUtil.getSuffix(originalFilename);
+        List<String> validSuffix = Arrays.asList("png","jpg","svg","webp","jpeg","xlsx");
+        ThrowUtils.throwIf(!validSuffix.contains(suffix),ErrorCode.PARAMS_ERROR,"文件后缀非法");
+        //限流判断，每个用户一个限流器
+        redisLimiterManager.doRateLimit("genChartByAi_" + loginUser.getId());
+        // 指定一个模型id(把id写死，也可以定义成一个常量)
+        long biModelId = CommonConstant.BI_MODEL_ID;
+         /*
+          * 用户的输入(参考)
+          分析需求：
+          分析网站用户的增长情况
+          原始数据：
+          日期,用户数
+          1号,10
+          2号,20
+          3号,30
+         * */
+        StrBuilder userInput = new StrBuilder();
+        userInput.append("分析需求：").append("\n");
+        String userGoal = goal;
+        if(StringUtils.isNotBlank(chartType)){
+            //指定了图表类型，就在目标上拼接请使用，图表类型
+            userGoal += "请使用，"  + chartType;
+        }
+        String CSVData = ExcelUtils.excelToCsv(multipartFile);
+        userInput.append(CSVData).append("\n");
+        Chart chart = new Chart();
+        chart.setName(name);
+        chart.setGoal(userGoal);
+        chart.setChartData(CSVData);
+        chart.setChartType(chartType);
+        chart.setUserId(loginUser.getId());
+        chart.setStatus("wait");
+        boolean save = chartService.save(chart);
+        ThrowUtils.throwIf(!save,ErrorCode.SYSTEM_ERROR,"图表保存失败");
+        Long chartId = chart.getId();
+        biMessageProducer.sendMessage(String.valueOf(chartId));
         BiResponse biResponse = new BiResponse();
         biResponse.setChartId(chart.getId());
         return ResultUtils.success(biResponse);
