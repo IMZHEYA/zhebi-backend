@@ -33,6 +33,11 @@ spring:
     port: 5672
     password: guest
     username: guest
+    publisher-confirm-type: correlated #交换机消息确认
+    publisher-returns: true #队列消息确认
+    listener:
+      simple:
+        acknowledge-mode: manual
   # Elasticsearch 配置
   # todo 需替换配置，然后取消注释
 #  elasticsearch:
